@@ -3,30 +3,30 @@ SET SERVEROUTPUT ON;
 
 -- Pagina 218
 DECLARE
-    v_num_empleados NUMBER(2);
+    V_NUM_EMPLEADOS NUMBER(2);
 BEGIN
-    INSERT INTO depart VALUES (99, 'D PROVISIONAL',NULL);
-    UPDATE emple SET dept_no = 99 
-        WHERE emple.dept_no = 20;
-    v_num_empleados := SQL%ROWCOUNT;
-    DELETE FROM depart 
-        WHERE depart.dept_no = 20;
-    DBMS_OUTPUT.PUT_LINE(v_num_empleados || ' Empleados ubicados en PROVISIONAL');
+    INSERT INTO DEPART VALUES (99, 'D PROVISIONAL',NULL);
+    UPDATE EMPLE SET DEPT_NO = 99 
+        WHERE EMPLE.DEPT_NO = 20;
+    V_NUM_EMPLEADOS := SQL%ROWCOUNT;
+    DELETE FROM DEPART 
+        WHERE DEPART.DEPT_NO = 20;
+    DBMS_OUTPUT.PUT_LINE(V_NUM_EMPLEADOS || ' EMPLEADOS UBICADOS EN PROVISIONAL');
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR (-20000, 'Error en la aplicación');
+        RAISE_APPLICATION_ERROR (-20000, 'ERROR EN LA APLICACIÓN');
 END;
 /
 
 -- Pagina 222
 DECLARE 
-    v_app_emple VARCHAR2(10);
-    v_of_emple VARCHAR2(10);
+    V_APP_EMPLE VARCHAR2(10);
+    V_OF_EMPLE VARCHAR2(10);
 BEGIN
-    SELECT apellido, oficio INTO v_app_emple, v_of_emple
-        FROM emple
-        WHERE emple.emp_no = 7900;
-    DBMS_OUTPUT.PUT_LINE(v_app_emple || ' - ' || v_of_emple);
+    SELECT APELLIDO, OFICIO INTO V_APP_EMPLE, V_OF_EMPLE
+        FROM EMPLE
+        WHERE EMPLE.EMP_NO = 7900;
+    DBMS_OUTPUT.PUT_LINE(V_APP_EMPLE || ' - ' || V_OF_EMPLE);
 END;
 /
 
@@ -36,20 +36,20 @@ END;
 
 CREATE PROCEDURE BORRAR_DPTO
 IS 
-    v_num_empleados NUMBER(2);
+    V_NUM_EMPLEADOS NUMBER(2);
 BEGIN
-    INSERT INTO depart VALUES (99, 'DPTO DE LOLO',NULL);
-    UPDATE emple SET dept_no = 99
-    WHERE dept_no = 20;
-    v_num_empleados := SQL%ROWCOUNT;
+    INSERT INTO DEPART VALUES (99, 'DPTO DE LOLO',NULL);
+    UPDATE EMPLE SET DEPT_NO = 99
+    WHERE DEPT_NO = 20;
+    V_NUM_EMPLEADOS := SQL%ROWCOUNT;
 
-    DELETE FROM depart WHERE dept_no = 20;
-    DBMS_OUTPUT.PUT_LINE(v_num_empleados || ' Empleados ubicados en PROVISIONAL');
-    DBMS_OUTPUT.PUT_LINE('Dept 20 borrado con exito');
+    DELETE FROM DEPART WHERE DEPT_NO = 20;
+    DBMS_OUTPUT.PUT_LINE(V_NUM_EMPLEADOS || ' EMPLEADOS UBICADOS EN PROVISIONAL');
+    DBMS_OUTPUT.PUT_LINE('DEPT 20 BORRADO CON EXITO');
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR (-20000, 'Error en la aplicación');
+        RAISE_APPLICATION_ERROR (-20000, 'ERROR EN LA APLICACIÓN');
 END;
 /
 
@@ -61,3 +61,59 @@ DROP PROCEDURE BORRAR_DPTO();
 
 -- Para ver los errores de compliacion
 SHOW ERRORS
+
+-- IMPORTANTE: Los procedimientos almacenados NO devuelven datos
+-- -> Hay que guardarlos en variables <-
+
+-- Ejemplo MAL:
+
+CREATE PROCEDURE VER_EMPLE(EMPLEADO NUMBER)
+IS
+BEGIN
+    SELECT APELLIDO
+     FROM EMPLE
+     WHERE EMPLE.EMP_NO = EMPLEADO;
+END;
+/
+
+-- Ejemplo BIEN:
+
+CREATE PROCEDURE VER_EMPLE(EMPLEADO NUMBER)
+IS
+V_APELLIDO VARCHAR2(10);
+BEGIN
+    SELECT APELLIDO INTO V_APELLIDO
+     FROM EMPLE
+     WHERE EMPLE.EMP_NO = EMPLEADO;
+     DBMS_OUTPUT.PUT_LINE('EL EMPLEADO SE APELLIDA '|| V_APELLIDO);
+END;
+/
+
+-- Si se queja de que el PROCEDURE ya existe, se puede hacer un DROP PROCEDURE o 
+-- poner el procedure como CREATE OR REPLACE PROCEDURE.. (aunque este es peligroso porque
+-- lo sobrescribe sin avisar)
+
+
+-- Si por algún casual cambia el tipo de dato que le pasamos en el IS, se puede hacer lo siguiente:
+
+CREATE PROCEDURE VER_EMPLE(EMPLEADO NUMBER)
+IS
+V_APELLIDO EMPLE.APELLIDA&TYPE
+BEGIN
+    SELECT APELLIDO INTO V_APELLIDO
+     FROM EMPLE
+     WHERE EMPLE.EMP_NO = EMPLEADO;
+     DBMS_OUTPUT.PUT_LINE('EL EMPLEADO SE APELLIDA '|| V_APELLIDO);
+
+-- Página 289-290 para EXCEPCIONES
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN 
+        DBMS_OUTPUT.PUT_LINE('NO EXISTE EL EMPLEADO');
+    WHEN OTHERS THEN 
+        DBMS_OUTPUT.PUT_LINE('ERROR DESCONOCIDO');
+
+
+END;
+/
+
+
