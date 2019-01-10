@@ -141,6 +141,8 @@ END;
 /
 
 -- Ejemplo de CURSOR con WHILE (usar WHILE)
+-- IMPORTANTE:
+    -- Cuando usas el WHILE hay que primero hacer un FECTH para que entre en el bucle
 DECLARE
     CURSOR CUR IS 
         SELECT APELLIDO, OFICIO
@@ -150,12 +152,13 @@ DECLARE
     V_OFI EMPLE.OFICIO%TYPE;
 BEGIN
     OPEN CUR;
-    WHILE CUR%FOUND 
-    LOOP
         FETCH CUR INTO V_APE, V_OFI;
+    WHILE  CUR%FOUND LOOP
         DBMS_OUTPUT.PUT_LINE(V_APE || ' - ' || V_OFI);
+        FETCH CUR INTO V_APE, V_OFI;
     END LOOP;
     CLOSE CUR;
 END;
 /
+
 
