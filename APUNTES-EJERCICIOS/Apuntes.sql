@@ -267,6 +267,7 @@ SELECT MAX(EXTRACT(YEAR FROM EMPLOYEES.HIRE_DATE))
 
 -- Cursores
 
+-- EJ 1 
 DECLARE 
   CURSOR V_DNI_PERSONAL IS 
     SELECT DNI
@@ -275,10 +276,52 @@ DECLARE
 BEGIN
   OPEN V_DNI_PERSONAL;
     FETCH V_DNI_PERSONAL INTO V_DNI;
-  WHILE V_DNI_PERSONAL%FOUND LOOPa
-    DBMS_OUTPUT.PUT_LINE(V_DNI);
+  WHILE V_DNI_PERSONAL%FOUND LOOP
+    DBMS_OUTPUT.PUT_LINE('DNI Nº '|| V_DNI_PERSONAL%ROWCOUNT || ': ' || V_DNI);
     FETCH V_DNI_PERSONAL INTO V_DNI;
   END LOOP;
-  CLOSE V_DNI;
+  CLOSE V_DNI_PERSONAL;
+END;
+/
+
+-- EJ 2 (Con parametros)
+DECLARE 
+  CURSOR v_dni_personal(v_centro NUMBER) IS 
+    SELECT DNI
+     FROM  PERSONAL
+     WHERE COD_CENTRO = v_centro;
+  v_dni PERSONAL.DNI%TYPE;
+BEGIN
+  OPEN v_dni_personal(10);
+    FETCH v_dni_personal INTO v_dni;
+  WHILE v_dni_personal%FOUND LOOP
+    DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
+    FETCH v_dni_personal INTO v_dni;
+  END LOOP;
+  CLOSE v_dni_personal;
+END;
+/
+
+-- Excepciones
+DECLARE 
+  CURSOR v_dni_personal(v_centro NUMBER) IS 
+    SELECT DNI
+     FROM  PERSONAL
+     WHERE COD_CENTRO = v_centro;
+  v_dni PERSONAL.DNI%TYPE;
+BEGIN
+  OPEN v_dni_personal(10);
+    FETCH v_dni_personal INTO v_dni;
+  WHILE v_dni_personal%FOUND LOOP
+    DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
+    FETCH v_dni_personal INTO v_dni;
+  END LOOP;
+  CLOSE v_dni_personal;
+
+EXCEPTION 
+  WHEN NO_DATA_FOUND THEN 
+    DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
+    -- Hacer que el programa no se bloquee cuando hay una excepcion
+    CONTINUE
 END;
 /
