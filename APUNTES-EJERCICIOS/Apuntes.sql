@@ -309,11 +309,21 @@ DECLARE
      FROM  PERSONAL
      WHERE COD_CENTRO = v_centro;
   v_dni PERSONAL.DNI%TYPE;
+  e_dni_invalido EXCEPTION;
 BEGIN
   OPEN v_dni_personal(10);
     FETCH v_dni_personal INTO v_dni;
   WHILE v_dni_personal%FOUND LOOP
-    DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
+    -- Hacer que el programa no se bloquee cuando hay una excepcion
+    BEGIN 
+      IF v_dni.DNI = 11233324 THEN
+        RAISE e_dni_invalido;
+      END IF;
+      DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
+      EXCEPTION
+        WHEN e_dni_invalido THEN
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_dni.DNI || ' ES INVALIDO');
+    END;
     FETCH v_dni_personal INTO v_dni;
   END LOOP;
   CLOSE v_dni_personal;
@@ -321,7 +331,39 @@ BEGIN
 EXCEPTION 
   WHEN NO_DATA_FOUND THEN 
     DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
+END;
+/
+
+-- Hacer un for update de un cursor
+DECLARE 
+  CURSOR v_dni_personal(v_centro NUMBER) IS 
+    SELECT DNI
+     FROM  PERSONAL
+     WHERE COD_CENTRO = v_centro 
+     FOR UPDATE ;
+     --TODO
+  v_dni PERSONAL.DNI%TYPE;
+  e_dni_invalido EXCEPTION;
+BEGIN
+  OPEN v_dni_personal(10);
+    FETCH v_dni_personal INTO v_dni;
+  WHILE v_dni_personal%FOUND LOOP
     -- Hacer que el programa no se bloquee cuando hay una excepcion
-    CONTINUE
+    BEGIN 
+      IF v_dni.DNI = 11233324 THEN
+        RAISE e_dni_invalido;
+      END IF;
+      DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
+      EXCEPTION
+        WHEN e_dni_invalido THEN
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_dni.DNI || ' ES INVALIDO');
+    END;
+    FETCH v_dni_personal INTO v_dni;
+  END LOOP;
+  CLOSE v_dni_personal;
+
+EXCEPTION 
+  WHEN NO_DATA_FOUND THEN 
+    DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
 END;
 /
