@@ -308,23 +308,23 @@ DECLARE
     SELECT DNI
      FROM  PERSONAL
      WHERE COD_CENTRO = v_centro;
-  v_dni PERSONAL.DNI%TYPE;
+  v_valorCursor v_dni_personal%ROWTYPE;
   e_dni_invalido EXCEPTION;
 BEGIN
   OPEN v_dni_personal(10);
-    FETCH v_dni_personal INTO v_dni;
+    FETCH v_dni_personal INTO v_valorCursor;
   WHILE v_dni_personal%FOUND LOOP
     -- Hacer que el programa no se bloquee cuando hay una excepcion
     BEGIN 
-      IF v_dni.DNI = 11233324 THEN
+      IF v_valorCursor.DNI = 4123005 THEN
         RAISE e_dni_invalido;
       END IF;
-      DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
-      EXCEPTION
+      DBMS_OUTPUT.PUT_LINE('DNI Nº ' || v_dni_personal%ROWCOUNT || ': ' || v_valorCursor.DNI);
+    EXCEPTION
         WHEN e_dni_invalido THEN
-          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_dni.DNI || ' ES INVALIDO');
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_valorCursor.DNI || ' ES INVALIDO');
     END;
-    FETCH v_dni_personal INTO v_dni;
+    FETCH v_dni_personal INTO v_valorCursor;
   END LOOP;
   CLOSE v_dni_personal;
 
@@ -340,25 +340,29 @@ DECLARE
     SELECT DNI
      FROM  PERSONAL
      WHERE COD_CENTRO = v_centro 
-     FOR UPDATE ;
-     --TODO
-  v_dni PERSONAL.DNI%TYPE;
+     FOR UPDATE;
+
+  v_valorCursor v_dni_personal%ROWTYPE;
   e_dni_invalido EXCEPTION;
 BEGIN
   OPEN v_dni_personal(10);
-    FETCH v_dni_personal INTO v_dni;
+  FETCH v_dni_personal INTO v_valorCursor;
   WHILE v_dni_personal%FOUND LOOP
     -- Hacer que el programa no se bloquee cuando hay una excepcion
     BEGIN 
-      IF v_dni.DNI = 11233324 THEN
+      IF v_valorCursor.DNI = 4123005 THEN
         RAISE e_dni_invalido;
       END IF;
-      DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_dni);
-      EXCEPTION
+      IF v_valorCursor.DNI = 4480099 THEN
+        UPDATE PERSONAL SET COD_CENTRO = 99
+        WHERE CURRENT OF V_DNI_PERSONAL;
+      END IF;
+      DBMS_OUTPUT.PUT_LINE('DNI Nº '|| v_dni_personal%ROWCOUNT || ': ' || v_valorCursor.DNI);
+    EXCEPTION
         WHEN e_dni_invalido THEN
-          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_dni.DNI || ' ES INVALIDO');
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_valorCursor.DNI || ' ES INVALIDO');
     END;
-    FETCH v_dni_personal INTO v_dni;
+    FETCH v_dni_personal INTO v_valorCursor;
   END LOOP;
   CLOSE v_dni_personal;
 
@@ -367,3 +371,157 @@ EXCEPTION
     DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
 END;
 /
+
+-- FUNCIONES
+CREATE OR REPLACE FUNCTION FORMATO_FECHA RETURN VARCHAR
+AS  
+  v_fecha VARCHAR2(100);
+BEGIN 
+  SELECT TO_CHAR(SYSDATE, 'DD/Mon/YYYY') INTO v_fecha 
+    FROM DUAL;
+  RETURN v_fecha;
+END FORMATO_FECHA;
+/
+
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('LA FECHA ES ' || FORMATO_FECHA);
+END;
+/
+
+-- Otra forma de ejecutar funciones
+SELECT FORMATO_FECHA FROM DUAL;
+
+
+
+-- Funcion que valide el DNI (Longitud 8)
+-- y si es valida que devuelva la letra correspondiente
+
+  -- Funciones
+
+    -- Longitud == 8
+
+CREATE OR REPLACE FUNCTION VALIDAR_DNI(DNI NUMBER) RETURN NUMBER
+AS
+  v_isValido NUMBER(1) DEFAULT 0;
+BEGIN
+  IF LENGTH(DNI) = 8 THEN
+    v_isValido := 1;
+  END IF;
+  RETURN v_isValido;
+END VALIDAR_DNI;
+/
+
+    -- Devolver letra correspondiente
+
+CREATE OR REPLACE FUNCTION LETRA_DNI(DNI NUMBER) RETURN VARCHAR2
+AS
+  v_letraDNI VARCHAR(1) DEFAULT '';
+  v_letras VARCHAR2(25) DEFAULT 'TRWAGMYFPDXBNJZSQVHLCKE';
+BEGIN
+  v_letraDNI := SUBSTR(v_letras,MOD(DNI,23)+1,1);
+  RETURN v_letraDNI;
+END LETRA_DNI;
+/
+
+  -- Aplicando la funcion
+
+DECLARE 
+  CURSOR v_dni_personal(v_centro NUMBER) IS 
+    SELECT DNI
+     FROM  PERSONAL
+     WHERE COD_CENTRO = v_centro;
+  v_valorCursor v_dni_personal%ROWTYPE;
+  v_nuevoDni VARCHAR2(9);
+  e_dni_invalido EXCEPTION;
+BEGIN
+  OPEN v_dni_personal(10);
+    FETCH v_dni_personal INTO v_valorCursor;
+  WHILE v_dni_personal%FOUND LOOP
+    BEGIN 
+      IF VALIDAR_DNI(v_valorCursor.DNI) = 1 THEN
+        v_nuevoDni := CONCAT(TO_CHAR(v_valorCursor.DNI),LETRA_DNI(v_valorCursor.DNI));
+        DBMS_OUTPUT.PUT_LINE('DNI Nº ' || v_dni_personal%ROWCOUNT || ': ' || v_nuevoDni);
+      ELSE
+        RAISE e_dni_invalido;
+      END IF;
+    EXCEPTION
+        WHEN e_dni_invalido THEN
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_valorCursor.DNI || ' ES INVALIDO');
+    END;
+    FETCH v_dni_personal INTO v_valorCursor;
+  END LOOP;
+  CLOSE v_dni_personal;
+
+EXCEPTION 
+  WHEN NO_DATA_FOUND THEN 
+    DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
+END;
+/
+
+  -- Para que saque un valor que se pueda comprobar la funcion:
+
+DECLARE 
+  CURSOR v_dni_personal IS 
+    SELECT DNI
+     FROM  PERSONAL;
+  v_valorCursor v_dni_personal%ROWTYPE;
+  v_nuevoDni VARCHAR2(9);
+  e_dni_invalido EXCEPTION;
+BEGIN
+  OPEN v_dni_personal;
+    FETCH v_dni_personal INTO v_valorCursor;
+  WHILE v_dni_personal%FOUND LOOP
+    BEGIN 
+      IF VALIDAR_DNI(v_valorCursor.DNI) = 1 THEN
+        v_nuevoDni := CONCAT(TO_CHAR(v_valorCursor.DNI),LETRA_DNI(v_valorCursor.DNI));
+        DBMS_OUTPUT.PUT_LINE('DNI Nº ' || v_dni_personal%ROWCOUNT || ': ' || v_nuevoDni);
+      ELSE
+        RAISE e_dni_invalido;
+      END IF;
+    EXCEPTION
+        WHEN e_dni_invalido THEN
+          DBMS_OUTPUT.PUT_LINE('EL DNI ' || v_valorCursor.DNI || ' ES INVALIDO');
+    END;
+    FETCH v_dni_personal INTO v_valorCursor;
+  END LOOP;
+  CLOSE v_dni_personal;
+
+EXCEPTION 
+  WHEN NO_DATA_FOUND THEN 
+    DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
+END;
+/
+
+
+-- Crear una tabla de errores, con la fecha del error y el nombre del error
+
+  -- Comprobar si existe la tabla 
+CREATE OR REPLACE FUNCTION EXISTE_TABLA(TABLE_NAME VARCHAR2) RETURN NUMBER
+AS
+  v_existe NUMBER(1);
+BEGIN
+  SELECT COUNT(*) INTO v_existe
+   FROM ALL_OBJECTS 
+   WHERE OBJECT_TYPE IN ('TABLE') 
+   AND OBJECT_NAME = TABLE_NAME;
+   RETURN v_existe;
+END EXISTE_TABLA;
+/
+
+ -- Crear la tabla si existe
+CREATE OR REPLACE FUNCTION CREAR_TABLA(TABLE_NAME VARCHAR2) RETURN NUMBER
+AS
+  v_sql VARCHAR2(4000);
+  v_creada NUMBER(1);
+BEGIN
+  v_sql := 'CREATE TABLE ERRORES_PROCEDURES (
+    NOMBRE VARCHAR2(50) NOT NULL,
+    NOMBRE_TABLA VARCHAR(50) NOT NULL,
+    FECHA DATE NOT NULL
+  );';
+  EXECUTE IMMEDIATE v_sql;
+  v_creada := EXISTE_TABLA(TABLE_NAME);
+  RETURN v_creada;  
+END CREAR_TABLA;
+/
+
