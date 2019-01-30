@@ -430,6 +430,7 @@ DECLARE
     SELECT DNI
      FROM  PERSONAL
      WHERE COD_CENTRO = v_centro;
+
   v_valorCursor v_dni_personal%ROWTYPE;
   v_nuevoDni VARCHAR2(9);
   e_dni_invalido EXCEPTION;
@@ -464,6 +465,7 @@ DECLARE
   CURSOR v_dni_personal IS 
     SELECT DNI
      FROM  PERSONAL;
+
   v_valorCursor v_dni_personal%ROWTYPE;
   v_nuevoDni VARCHAR2(9);
   e_dni_invalido EXCEPTION;
@@ -508,20 +510,49 @@ BEGIN
 END EXISTE_TABLA;
 /
 
- -- Crear la tabla si existe
-CREATE OR REPLACE FUNCTION CREAR_TABLA(TABLE_NAME VARCHAR2) RETURN NUMBER
-AS
-  v_sql VARCHAR2(4000);
-  v_creada NUMBER(1);
-BEGIN
-  v_sql := 'CREATE TABLE ERRORES_PROCEDURES (
-    NOMBRE VARCHAR2(50) NOT NULL,
-    NOMBRE_TABLA VARCHAR(50) NOT NULL,
-    FECHA DATE NOT NULL
-  );';
-  EXECUTE IMMEDIATE v_sql;
-  v_creada := EXISTE_TABLA(TABLE_NAME);
-  RETURN v_creada;  
-END CREAR_TABLA;
-/
 
+-- Aplicando las funciones
+
+DECLARE 
+  CURSOR v_dni_personal(v_centro NUMBER) IS 
+    SELECT DNI
+     FROM  PERSONAL
+     WHERE COD_CENTRO = v_centro;
+     
+  v_valorCursor v_dni_personal%ROWTYPE;
+  v_nuevoDni VARCHAR2(9);
+  e_dni_invalido EXCEPTION;
+BEGIN
+  OPEN v_dni_personal(10);
+    FETCH v_dni_personal INTO v_valorCursor;
+
+  IF EXISTE_TABLA('ERRORES_PROCEDURES') = 1 THEN
+    EXECUTE IMMEDIATE 'CREATE TABLE ERRORES_PROCEDURES (
+      ID_ERROR NUMBER(10) NOT NULL,
+      DESCRIPCION VARCHAR2(50) NOT NULL,
+      FECHA DATE NOT NULL
+    );';
+
+  END IF;
+
+  WHILE v_dni_personal%FOUND LOOP
+    BEGIN 
+      IF VALIDAR_DNI(v_valorCursor.DNI) = 1 THEN
+        v_nuevoDni := CONCAT(TO_CHAR(v_valorCursor.DNI),LETRA_DNI(v_valorCursor.DNI));
+        DBMS_OUTPUT.PUT_LINE('DNI Nº ' || v_dni_personal%ROWCOUNT || ': ' || v_nuevoDni);
+      ELSE
+        RAISE e_dni_invalido;
+      END IF;
+    EXCEPTION
+        WHEN e_dni_invalido THEN
+          INSERT INTO ERRORES_PROCEDURES (ID_ERROR, DESCRIPCION, FECHA) VALUES (v_dni_personal%ROWCOUNT, 'Error en DNI: ' || v_valorCursor.DNI, TO_DATE(TO_CHAR(SYSDATE,'DD/MM/YYYY')));
+    END;
+    FETCH v_dni_personal INTO v_valorCursor;
+  END LOOP;
+  CLOSE v_dni_personal;
+
+EXCEPTION 
+  WHEN NO_DATA_FOUND THEN 
+    DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
+END;
+/
