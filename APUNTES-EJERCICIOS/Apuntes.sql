@@ -556,3 +556,33 @@ EXCEPTION
     DBMS_OUTPUT.PUT_LINE('NO HAY DATOS');
 END;
 /
+
+-- Triggers (Pg 308 libro)
+-- (Con SYS AS SYSDBA no se pueden crear triggers)
+
+-- En los Triggers usar siempre el ON FOR EACH ROW para que no bloquee la tabla completa
+-- sino solo la fila con la que se va a trabajar
+-- El WHEN es la condición del Trigger para que haga o no haga.
+
+-- Hay que hacerlo como otro usuario
+CREATE OR REPLACE TRIGGER tr_ejemplo 
+BEFORE -- o también AFTER
+DELETE -- OR INSERT OR UPDATE acciones para las que se activa el trigger
+ON tabla_ejemplo
+FOR EACH ROW 
+DECLARE
+  v_ejemplo NUMBER(3);
+BEGIN
+  v_ejemplo := 4;
+  IF v_ejemplo = 4 THEN
+    RAISE exc_ejemplo;
+  END IF;
+EXCEPTION 
+  WHEN exc_ejemplo THEN 
+    DBMS_OUTPUT.PUT_LINE('HA SALTADO EL ERROR');
+END tr_ejemplo;
+/
+
+
+-- Registros y colecciones (Pg 320 libro)
+
