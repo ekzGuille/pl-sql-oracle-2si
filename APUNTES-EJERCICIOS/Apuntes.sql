@@ -585,4 +585,7 @@ END tr_ejemplo;
 
 
 -- Registros y colecciones (Pg 320 libro)
+  -- Tablas Anidadas
 
+TYPE ejemplo_tabla IS TABLE OF VARCHAR2(30)
+-- TODO
