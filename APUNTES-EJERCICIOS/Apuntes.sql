@@ -628,14 +628,23 @@ CREATE OR REPLACE TYPE LIBROS_OBJ AS OBJECT (
   AUTOR     VARCHAR2(22),
   EDITORIAL VARCHAR2(15),
   PAGINA    NUMBER(3),
-  MEMBER PROCEDURE IMPRIMIR,
-  MEMBER FUNCTION IMPRIMIR_TEXTO_MAYUS
+  MEMBER PROCEDURE toString,
+  MEMBER FUNCTION getIdLibro RETURN NUMBER;
+  MEMBER FUNCTION getTitulo RETURN VARCHAR2;
+  MEMBER FUNCTION getAutor RETURN VARCHAR2;
+  MEMBER FUNCTION getEditorial RETURN VARCHAR2;
+  MEMBER FUNCTION getPagina RETURN NUMBER;
+  MEMBER FUNCTION setIdLibro(_idLibro NUMBER) RETURN NUMBER;
+  MEMBER FUNCTION setTitulo(_titulo VARCHAR2) RETURN NUMBER;
+  MEMBER FUNCTION setAutor(_autor VARCHAR2) RETURN NUMBER;
+  MEMBER FUNCTION setEditorial(_editorial VARCHAR2) RETURN NUMBER;
+  MEMBER FUNCTION setPagina(_pagina NUMBER) RETURN NUMBER;
 );
 /
 
 -- Para desarrollar los métodos hay que modificar el objeto a través del BODY
 CREATE OR REPLACE TYPE BODY LIBROS_OBJ AS
-  MEMBER PROCEDURE IMPRIMIR
+  MEMBER PROCEDURE toString
   IS
   BEGIN
     DBMS_OUTPUT.PUT_LINE('ID ' || ID_LIBRO);
@@ -643,13 +652,119 @@ CREATE OR REPLACE TYPE BODY LIBROS_OBJ AS
     DBMS_OUTPUT.PUT_LINE('AUTOR ' || AUTOR);
     DBMS_OUTPUT.PUT_LINE('EDITORIAL ' || EDITORIAL);
     DBMS_OUTPUT.PUT_LINE('PAGINA ' || PAGINA);
-  END IMPRIMIR;
-
-  MEMBER FUNCTION IMPRIMIR_TEXTO_MAYUS
+  END toString;
+  
+  MEMBER FUNCTION getIdLibro RETURN NUMBER
   IS
+  BEGIN RETURN ID_LIBRO;
+  END getIdLibro;
+
+  MEMBER FUNCTION getTitulo RETURN VARCHAR2
+  IS
+  BEGIN RETURN TITULO;
+  END getTitulo;
+
+  MEMBER FUNCTION getAutor RETURN VARCHAR2
+  IS
+  BEGIN RETURN AUTOR;
+  END getAutor;
+
+  MEMBER FUNCTION getEditorial RETURN VARCHAR2
+  IS
+  BEGIN RETURN EDITORIAL;
+  END getEditorial;
+
+  MEMBER FUNCTION getPagina RETURN NUMBER
+  IS
+  BEGIN RETURN PAGINA;
+  END getPagina;
+
+  MEMBER FUNCTION setIdLibro(_idLibro NUMBER) RETURN NUMBER
+  IS
+    e_longitud_invalida EXCEPTION;
+    v_exito NUMBER DEFAULT 1;
   BEGIN
-    DBMS_OUTPUT.PUT_LINE(TITULO || '->' || UPPER(TITULO));
-  END IMPRIMIR_TEXTO_MAYUS;
+    IF LENGTH(_idLibro) < LENGTH(ID_LIBRO%TYPE) THEN
+      ID_LIBRO := _idLibro
+    ELSE 
+      v_exito := 0;
+      RAISE e_longitud_invalida
+    END IF;
+    EXCEPTION 
+    WHEN e_longitud_invalida THEN 
+      DBMS_OUTPUT.PUT_LINE('LONGITUD IDLIBRO INCORRECTA');
+    RETURN v_exito;
+  END setIdLibro;
+
+  MEMBER FUNCTION setTitulo(_titulo VARCHAR2) RETURN NUMBER
+  IS
+    e_longitud_invalida EXCEPTION;
+    v_exito NUMBER DEFAULT 1;
+  BEGIN
+    IF LENGTH(_titulo) < LENGTH(TITULO%TYPE) THEN
+      TITULO := _titulo
+    ELSE 
+      v_exito := 0;
+      RAISE e_longitud_invalida
+    END IF;
+    EXCEPTION 
+    WHEN e_longitud_invalida THEN 
+      DBMS_OUTPUT.PUT_LINE('LONGITUD TITULO INCORRECTA');
+    RETURN v_exito;
+  END setTitulo;
+
+  MEMBER FUNCTION setAutor(_autor VARCHAR2) RETURN NUMBER
+  IS
+    e_longitud_invalida EXCEPTION;
+    v_exito NUMBER DEFAULT 1;
+  BEGIN
+    IF LENGTH(_autor) < LENGTH(AUTOR%TYPE) THEN
+      AUTOR := _autor
+    ELSE 
+      v_exito := 0;
+      RAISE e_longitud_invalida
+    END IF;
+    EXCEPTION 
+    WHEN e_longitud_invalida THEN 
+      DBMS_OUTPUT.PUT_LINE('LONGITUD AUTOR INCORRECTA');
+    RETURN v_exito;
+  END setAutor;
+
+  MEMBER FUNCTION setEditorial(_editorial VARCHAR2) RETURN NUMBER
+  IS
+    e_longitud_invalida EXCEPTION;
+    v_exito NUMBER DEFAULT 1;
+  BEGIN
+    IF LENGTH(_editorial) < LENGTH(EDITORIAL%TYPE) THEN
+      EDITORIAL := _editorial
+    ELSE 
+      v_exito := 0;
+      RAISE e_longitud_invalida
+    END IF;
+    EXCEPTION 
+    WHEN e_longitud_invalida THEN 
+      DBMS_OUTPUT.PUT_LINE('LONGITUD EDITORIAL INCORRECTA');
+    RETURN v_exito;
+  END setEditorial;
+
+
+  MEMBER FUNCTION setPagina(_pagina NUMBER) RETURN NUMBER
+  IS
+    e_longitud_invalida EXCEPTION;
+    v_exito NUMBER DEFAULT 1;
+  BEGIN
+    IF LENGTH(_pagina) < LENGTH(PAGINA%TYPE) THEN
+      PAGINA := _pagina
+    ELSE 
+      v_exito := 0;
+      RAISE e_longitud_invalida
+    END IF;
+    EXCEPTION 
+    WHEN e_longitud_invalida THEN 
+      DBMS_OUTPUT.PUT_LINE('LONGITUD PAGINA INCORRECTA');
+    RETURN v_exito;
+  END setPagina;
+
 END;
 /
 
@@ -658,6 +773,21 @@ DECLARE
   v_libro LIBROS_OBJ;
 BEGIN
   v_libro := LIBROS_OBJ(1432,'TITULO EJEMPLO','AUTOR EJEMPLO','EDITORIAL EJEMPLO',111);
+  -- GETTERS
+  DBMS_OUTPUT.PUT_LINE(v.libro.getIdLibro);
+  DBMS_OUTPUT.PUT_LINE(v.libro.getTitulo);
+  DBMS_OUTPUT.PUT_LINE(v.libro.getAutor);
+  DBMS_OUTPUT.PUT_LINE(v.libro.getEditorial);
+  DBMS_OUTPUT.PUT_LINE(v.libro.getPagina);
+  -- SETTERS
+  DBMS_OUTPUT.PUT_LINE(v.libro.setIdLibro(24));
+  DBMS_OUTPUT.PUT_LINE(v.libro.setTitulo('TITULO UPDATE'));
+  DBMS_OUTPUT.PUT_LINE(v.libro.setAutor('AUTOR UPDATE'));
+  DBMS_OUTPUT.PUT_LINE(v.libro.setEditorial('EDITORIAL UPDATE'));
+  DBMS_OUTPUT.PUT_LINE(v.libro.setPagina(100));
+  -- TOSTRING
+  v_libro.toString;
+
 END;
 /
 

@@ -22,7 +22,7 @@
 
   -- Objetos para introducir valores en todas las entidades generadas
   -- Procedimientos de CRUD para todas las entidades
-  -- Funciones que permitan calcular descuentos, verificar saldos de cliente, existencias de articulos....
+  -- Funciones que permitan calcular descuentos, verificar saldos de cliente, existencias de articulos...
   -- Procedimientos que permitan realizar un pedido y ver el resultado del mismo (incluye importes y tienda(s) que realizarán el envío o excepciones en caso de error: cliente sin saldo, sin existencias....)
 
 
@@ -540,7 +540,7 @@ CREATE OR REPLACE TYPE ARTICULOS_OBJ AS OBJECT (
   PRECIO_COSTO   NUMBER (6,2),
   EXISTENCIAS    NUMBER (5),
   NIF            VARCHAR2(10)
-)
+);
 
 CREATE OR REPLACE TYPE TIENDAS_OBJ AS OBJECT(
   NIF       VARCHAR2(10),
@@ -642,5 +642,9 @@ CREATE OR REPLACE TYPE ALMACEN_FABRICANTES_OBJ AS OBJECT(
   COD_FABRICANTE NUMBER(3)
 );
 
-
-
+-- CRUD DE LOS OBJETOS
+CREATE OR REPLACE PROCEDURE INSERT_ARTICULO(ARTICULO ARTICULOS_OBJ)
+IS
+BEGIN
+  INSERT INTO ARTICULOS VALUES(ARTICULO);
+END INSERT_ARTICULO;
