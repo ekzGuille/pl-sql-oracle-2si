@@ -681,68 +681,52 @@ CREATE OR REPLACE TYPE BODY LIBROS_OBJ AS
 
   MEMBER FUNCTION setIdLibro(_idLibro NUMBER) RETURN NUMBER
   IS
-    e_longitud_invalida EXCEPTION;
     v_exito NUMBER DEFAULT 1;
   BEGIN
-    IF LENGTH(_idLibro) < LENGTH(ID_LIBRO%TYPE) THEN
-      ID_LIBRO := _idLibro
-    ELSE 
-      v_exito := 0;
-      RAISE e_longitud_invalida
-    END IF;
+    ID_LIBRO := _idLibro;
+
     EXCEPTION 
-    WHEN e_longitud_invalida THEN 
+    WHEN OTHERS THEN 
+      v_exito := 0;
       DBMS_OUTPUT.PUT_LINE('LONGITUD IDLIBRO INCORRECTA');
     RETURN v_exito;
   END setIdLibro;
 
   MEMBER FUNCTION setTitulo(_titulo VARCHAR2) RETURN NUMBER
   IS
-    e_longitud_invalida EXCEPTION;
     v_exito NUMBER DEFAULT 1;
   BEGIN
-    IF LENGTH(_titulo) < LENGTH(TITULO%TYPE) THEN
-      TITULO := _titulo
-    ELSE 
-      v_exito := 0;
-      RAISE e_longitud_invalida
-    END IF;
+    TITULO := _titulo;
+
     EXCEPTION 
     WHEN e_longitud_invalida THEN 
+      v_exito := 0;
       DBMS_OUTPUT.PUT_LINE('LONGITUD TITULO INCORRECTA');
     RETURN v_exito;
   END setTitulo;
 
   MEMBER FUNCTION setAutor(_autor VARCHAR2) RETURN NUMBER
   IS
-    e_longitud_invalida EXCEPTION;
     v_exito NUMBER DEFAULT 1;
   BEGIN
-    IF LENGTH(_autor) < LENGTH(AUTOR%TYPE) THEN
-      AUTOR := _autor
-    ELSE 
-      v_exito := 0;
-      RAISE e_longitud_invalida
-    END IF;
+    AUTOR := _autor;
+      
     EXCEPTION 
     WHEN e_longitud_invalida THEN 
+      v_exito := 0;
       DBMS_OUTPUT.PUT_LINE('LONGITUD AUTOR INCORRECTA');
     RETURN v_exito;
   END setAutor;
 
   MEMBER FUNCTION setEditorial(_editorial VARCHAR2) RETURN NUMBER
   IS
-    e_longitud_invalida EXCEPTION;
     v_exito NUMBER DEFAULT 1;
   BEGIN
-    IF LENGTH(_editorial) < LENGTH(EDITORIAL%TYPE) THEN
-      EDITORIAL := _editorial
-    ELSE 
-      v_exito := 0;
-      RAISE e_longitud_invalida
-    END IF;
+    EDITORIAL := _editorial;
+
     EXCEPTION 
     WHEN e_longitud_invalida THEN 
+      v_exito := 0;
       DBMS_OUTPUT.PUT_LINE('LONGITUD EDITORIAL INCORRECTA');
     RETURN v_exito;
   END setEditorial;
@@ -750,17 +734,13 @@ CREATE OR REPLACE TYPE BODY LIBROS_OBJ AS
 
   MEMBER FUNCTION setPagina(_pagina NUMBER) RETURN NUMBER
   IS
-    e_longitud_invalida EXCEPTION;
     v_exito NUMBER DEFAULT 1;
   BEGIN
-    IF LENGTH(_pagina) < LENGTH(PAGINA%TYPE) THEN
-      PAGINA := _pagina
-    ELSE 
-      v_exito := 0;
-      RAISE e_longitud_invalida
-    END IF;
+    PAGINA := _pagina
+    
     EXCEPTION 
     WHEN e_longitud_invalida THEN 
+      v_exito := 0;
       DBMS_OUTPUT.PUT_LINE('LONGITUD PAGINA INCORRECTA');
     RETURN v_exito;
   END setPagina;
