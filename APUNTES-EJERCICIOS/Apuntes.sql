@@ -561,32 +561,6 @@ EXCEPTION
 END;
 /
 
--- Triggers (Pg 308 libro)
--- (Con SYS AS SYSDBA no se pueden crear triggers)
-
--- En los Triggers usar siempre el ON FOR EACH ROW para que no bloquee la tabla completa
--- sino solo la fila con la que se va a trabajar
--- El WHEN es la condición del Trigger para que haga o no haga.
-
--- Hay que hacerlo como otro usuario
-CREATE OR REPLACE TRIGGER tr_ejemplo 
-BEFORE -- o también AFTER
-DELETE -- OR INSERT OR UPDATE acciones para las que se activa el trigger
-ON tabla_ejemplo
-FOR EACH ROW 
-DECLARE
-  v_ejemplo NUMBER(3);
-BEGIN
-  v_ejemplo := 4;
-  IF v_ejemplo = 4 THEN
-    RAISE exc_ejemplo;
-  END IF;
-EXCEPTION 
-  WHEN exc_ejemplo THEN 
-    DBMS_OUTPUT.PUT_LINE('HA SALTADO EL ERROR');
-END tr_ejemplo;
-/
-
 
 -- Registros y colecciones (Pg 320 libro)
   -- Tablas Anidadas
@@ -771,3 +745,49 @@ BEGIN
 END;
 /
 
+-- TRIGGERS - Pg 308 libro - (NO SE PUEDEN CREAR EN SYS - SYS AS SYSDBA)
+
+-- 3 TIPOS:
+  -- DDL: Los que afectan a las tablas
+    -- Ejemplo de trigger (Cada vez que hay un insert, delete, update) guardar esa infro en una tabla de  logs
+  -- DML: Afectan a las vistas (Cada vez que se invoca una vista)
+  -- Sistema (Cuando hay acciones de sistema)
+
+-- En los Triggers usar siempre el ON FOR EACH ROW para que no bloquee la tabla completa
+-- sino solo la fila con la que se va a trabajar
+-- El WHEN es la condición del Trigger para que haga o no haga.
+
+-- Sobre el OLD y NEW
+  -- For an INSERT trigger, OLD contains no values, and NEW contains the new values.
+  -- For an UPDATE trigger, OLD contains the old values, and NEW contains the new values.
+  -- For a DELETE trigger, OLD contains the old values, and NEW contains no values.
+
+
+-- Hay que hacerlo como otro usuario
+CREATE OR REPLACE TRIGGER tr_ejemplo 
+BEFORE -- o también AFTER
+DELETE -- OR INSERT OR UPDATE acciones para las que se activa el trigger
+ON tabla_ejemplo
+FOR EACH ROW 
+DECLARE
+  v_ejemplo NUMBER(3);
+BEGIN
+  v_ejemplo := 4;
+  IF v_ejemplo = 4 THEN
+    RAISE exc_ejemplo;
+  END IF;
+EXCEPTION 
+  WHEN exc_ejemplo THEN 
+    DBMS_OUTPUT.PUT_LINE('HA SALTADO EL ERROR');
+END tr_ejemplo;
+/
+
+-- Ejemplo de trigger que cada vez que se elimine un elemento de una tabla haga un log por consola
+CREATE OR REPLACE TRIGGER mostrar_consola_borrado
+  BEFORE DELETE ON LIBROS2 FOR EACH ROW
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('SE HA BORRADO EL REGISTRO ' || :old.COD_LIBRO);
+END;
+/
+ -- Como es un trigger de borrado, no se puede utilizar el AFTER, hay que controlar únicamente
+    -- el BEFORE
