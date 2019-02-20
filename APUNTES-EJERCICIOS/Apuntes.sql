@@ -765,10 +765,11 @@ END;
 
 -- Hay que hacerlo como otro usuario
 CREATE OR REPLACE TRIGGER tr_ejemplo 
-BEFORE -- o también AFTER
-DELETE -- OR INSERT OR UPDATE acciones para las que se activa el trigger
-ON tabla_ejemplo
-FOR EACH ROW 
+  BEFORE -- o también AFTER
+  DELETE -- OR INSERT OR UPDATE acciones para las que se activa el trigger
+  ON tabla_ejemplo
+  FOR EACH ROW 
+  -- WHEN condicion (condicion en la que entra el trigger)
 DECLARE
   v_ejemplo NUMBER(3);
 BEGIN
@@ -783,11 +784,53 @@ END tr_ejemplo;
 /
 
 -- Ejemplo de trigger que cada vez que se elimine un elemento de una tabla haga un log por consola
-CREATE OR REPLACE TRIGGER mostrar_consola_borrado
-  BEFORE DELETE ON LIBROS2 FOR EACH ROW
+CREATE OR REPLACE TRIGGER mostrar_consola_preborrado
+  BEFORE DELETE 
+  ON LIBROS2 
+  FOR EACH ROW
 BEGIN
-  DBMS_OUTPUT.PUT_LINE('SE HA BORRADO EL REGISTRO ' || :old.COD_LIBRO);
+  DBMS_OUTPUT.PUT_LINE('SE VA A BORRAR EL REGISTRO ' || :OLD.COD_LIBRO);
 END;
 /
- -- Como es un trigger de borrado, no se puede utilizar el AFTER, hay que controlar únicamente
-    -- el BEFORE
+
+CREATE OR REPLACE TRIGGER mostrar_consola_posborrado
+  AFTER DELETE
+  ON LIBROS2
+  FOR EACH ROW
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('SE HA BORRADO EL REGISTRO ' || :OLD.COD_LIBRO);
+END;
+/
+
+-- Trigger de borrado y que inserte en una tabla el mensaje de borrado
+
+CREATE TABLE tabla_log_borrado (
+  MENSAJE_BORRADO VARCHAR2(100)
+);
+
+CREATE OR REPLACE TRIGGER insertar_tabla_log 
+  AFTER DELETE 
+  ON LIBROS2 
+  FOR EACH ROW
+BEGIN
+  INSERT INTO tabla_log_borrado VALUES ('SE HA BORRADO EL REGISTRO CON ID ' || :OLD.COD_LIBRO || ' A LAS ' || TO_CHAR(SYSDATE, 'DD-MM-YYY HH24:MI:SS'));
+END; 
+/
+
+-- Trigger con condicion de registro 'bloqueado' que lanza excepción a la aplicación.
+
+CREATE OR REPLACE trigger_exception
+  BEFORE DELETE
+  FOR EACH ROW
+DECLARE
+  e_trigger EXCEPTION;
+BEGIN 
+  IF (:OLD.UNIDADES < 6) THEN
+      INSERT INTO tabla_log_borrado VALUES ('ERROR AL ELEIMINAR REGISTRO CON ID ' || :OLD.COD_LIBRO || ' A LAS ' || TO_CHAR(SYSDATE, 'DD-MM-YYY HH24:MI:SS'));
+      RAISE e_trigger;
+  END IF;
+
+  EXCEPTION
+    WHEN e_trigger THEN
+      DBMS_OUTPUT.PUT_LINE('EL REGISTRO CON ID ' || :OLD.COD_LIBRO || ' ESTÁ PROTEGIDO');
+END;
