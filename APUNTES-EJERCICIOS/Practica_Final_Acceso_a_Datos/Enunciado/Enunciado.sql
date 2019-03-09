@@ -87,6 +87,7 @@ Commit;
 
 
 /*
+
 PRACTICA
 ---------------
 * Crear los objetos para realizar acciones sobre cada una de las tablas
